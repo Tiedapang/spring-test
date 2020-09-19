@@ -9,6 +9,7 @@ import com.thoughtworks.rslist.dto.VoteDto;
 import com.thoughtworks.rslist.repository.RsEventRepository;
 import com.thoughtworks.rslist.repository.UserRepository;
 import com.thoughtworks.rslist.repository.VoteRepository;
+import com.thoughtworks.rslist.service.RsService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,8 +39,8 @@ class RsControllerTest {
   @Autowired UserRepository userRepository;
   @Autowired RsEventRepository rsEventRepository;
   @Autowired VoteRepository voteRepository;
+  @Autowired RsService rsService;
   private UserDto userDto;
-  private static int rank = 0;
   @BeforeEach
   void setUp() {
     voteRepository.deleteAll();
@@ -192,7 +193,7 @@ class RsControllerTest {
   public void should_buy_rsEvent() throws Exception {
     UserDto save = userRepository.save(userDto);
     RsEventDto rsEventDto =
-            RsEventDto.builder().keyword("buyRsEvent").eventName("testForByRsEvent").rank(rank).user(save).build();
+            RsEventDto.builder().keyword("buyRsEvent").eventName("testForByRsEvent").rank(rsService.getRsEventRank()).user(save).build();
     rsEventDto = rsEventRepository.save(rsEventDto);
     Trade trade = new Trade(100,1);
     ObjectMapper objectMapper = new ObjectMapper();
@@ -202,5 +203,28 @@ class RsControllerTest {
                             .content(jsonValue)
                             .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk());
+  }
+
+  @Test
+  public void shouldGetRsListBetweenSortedByRank() throws Exception {
+    UserDto save = userRepository.save(userDto);
+
+    RsEventDto rsEventDto =
+            RsEventDto.builder().keyword("无分类").eventName("第一条事件").user(save).rank(2).build();
+
+    rsEventRepository.save(rsEventDto);
+    rsEventDto = RsEventDto.builder().keyword("无分类").eventName("第二条事件").user(save).rank(1).build();
+    rsEventRepository.save(rsEventDto);
+    rsEventDto = RsEventDto.builder().keyword("无分类").eventName("第三条事件").user(save).rank(3).build();
+    rsEventRepository.save(rsEventDto);
+    mockMvc
+            .perform(get("/rs/list"))
+            .andExpect(jsonPath("$", hasSize(3)))
+            .andExpect(jsonPath("$[0].eventName", is("第二条事件")))
+            .andExpect(jsonPath("$[0].keyword", is("无分类")))
+            .andExpect(jsonPath("$[1].eventName", is("第一条事件")))
+            .andExpect(jsonPath("$[1].keyword", is("无分类")))
+            .andExpect(jsonPath("$[2].eventName", is("第三条事件")))
+            .andExpect(jsonPath("$[2].keyword", is("无分类")));
   }
 }

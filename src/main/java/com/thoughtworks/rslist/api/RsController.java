@@ -13,21 +13,17 @@ import com.thoughtworks.rslist.service.RsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
 @Validated
+@ResponseBody
 public class RsController {
   @Autowired RsEventRepository rsEventRepository;
   @Autowired UserRepository userRepository;
@@ -45,8 +41,10 @@ public class RsController {
                         .keyword(item.getKeyword())
                         .userId(item.getId())
                         .voteNum(item.getVoteNum())
+                            .rank(item.getRank())
                         .build())
             .collect(Collectors.toList());
+    rsEvents.sort(Comparator.comparing(RsEvent :: getRank));
     if (start == null || end == null) {
       return ResponseEntity.ok(rsEvents);
     }
@@ -82,7 +80,7 @@ public class RsController {
         RsEventDto.builder()
             .keyword(rsEvent.getKeyword())
             .eventName(rsEvent.getEventName())
-            .voteNum(0)
+            .voteNum(0).rank(rsService.getRsEventRank()+1)
             .user(userDto.get())
             .build();
     rsEventRepository.save(build);

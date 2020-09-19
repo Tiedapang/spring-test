@@ -1,5 +1,6 @@
 package com.thoughtworks.rslist.service;
 
+import com.thoughtworks.rslist.domain.RsEvent;
 import com.thoughtworks.rslist.domain.Trade;
 import com.thoughtworks.rslist.domain.Vote;
 import com.thoughtworks.rslist.dto.RsEventDto;
@@ -78,5 +79,13 @@ public class RsService {
         throw new RuntimeException();
       }
     }
+  }
+  public int getRsEventRank(){
+    List<RsEventDto> rsEventDtos = rsEventRepository.findAll();
+    int rank = 0;
+    if(rsEventDtos.size()>0){
+      rank = rsEventDtos.stream().max(Comparator.comparing(RsEventDto::getRank)).get().getRank();
+    }
+    return rank;
   }
 }
