@@ -1,7 +1,9 @@
 package com.thoughtworks.rslist.service;
 
+import com.thoughtworks.rslist.domain.Trade;
 import com.thoughtworks.rslist.domain.Vote;
 import com.thoughtworks.rslist.dto.RsEventDto;
+import com.thoughtworks.rslist.dto.TradeDto;
 import com.thoughtworks.rslist.dto.UserDto;
 import com.thoughtworks.rslist.dto.VoteDto;
 import com.thoughtworks.rslist.repository.RsEventRepository;
@@ -13,6 +15,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -90,5 +94,90 @@ class RsServiceTest {
         () -> {
           rsService.vote(vote, 1);
         });
+  }
+  @Test
+  void shouldBuyRSEventSuccess(){
+    UserDto userDto =
+            UserDto.builder()
+                    .voteNum(5)
+                    .phone("18888888888")
+                    .gender("female")
+                    .email("a@b.com")
+                    .age(19)
+                    .userName("xiaoli")
+                    .id(2)
+                    .build();
+    RsEventDto rsEventDto1 =
+            RsEventDto.builder()
+                    .eventName("event name")
+                    .id(1)
+                    .keyword("keyword")
+                    .voteNum(2)
+                    .rank(1)
+                    .user(userDto)
+                    .build();
+    RsEventDto rsEventDto2 =
+            RsEventDto.builder()
+                    .eventName("event name2")
+                    .id(1)
+                    .keyword("keyword2")
+                    .voteNum(2)
+                    .rank(2)
+                    .user(userDto)
+                    .build();
+    TradeDto tradeDto = TradeDto.builder()
+            .rsEventDto(rsEventDto1)
+            .amount(100)
+            .rank(1)
+            .build();
+    List<TradeDto> tradeDtos = new ArrayList<>();
+    List<RsEventDto> rsEventDtos = new ArrayList<RsEventDto>();
+    rsEventDtos.add(rsEventDto1);
+    rsEventDtos.add(rsEventDto2);
+    when(rsEventRepository.findAll()).thenReturn(rsEventDtos);
+    when(tradeRepository.findAllByRank(anyInt())).thenReturn(tradeDtos);
+    // when
+    rsService.buy(new Trade(tradeDto.getAmount(),tradeDto.getRank()), 2);
+    // then
+    verify(tradeRepository).save(tradeDto);
+    verify(rsEventRepository).save(rsEventDto1);
+
+  }
+  @Test
+  void shouldGetRsEventRankSuccess(){
+    UserDto userDto =
+            UserDto.builder()
+                    .voteNum(5)
+                    .phone("18888888888")
+                    .gender("female")
+                    .email("a@b.com")
+                    .age(19)
+                    .userName("xiaoli")
+                    .id(2)
+                    .build();
+    RsEventDto rsEventDto1 =
+            RsEventDto.builder()
+                    .eventName("event name")
+                    .id(1)
+                    .keyword("keyword")
+                    .voteNum(2)
+                    .rank(1)
+                    .user(userDto)
+                    .build();
+    RsEventDto rsEventDto2 =
+            RsEventDto.builder()
+                    .eventName("event name2")
+                    .id(1)
+                    .keyword("keyword2")
+                    .voteNum(2)
+                    .rank(2)
+                    .user(userDto)
+                    .build();
+    List<RsEventDto> rsEventDtos = new ArrayList<RsEventDto>();
+    rsEventDtos.add(rsEventDto1);
+    rsEventDtos.add(rsEventDto2);
+    when(rsEventRepository.findAll()).thenReturn(rsEventDtos);
+
+
   }
 }
