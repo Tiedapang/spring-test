@@ -34,4 +34,6 @@ public class UserDto {
 
     @OneToMany(cascade = CascadeType.REMOVE, mappedBy = "user")
     private List<RsEventDto> rsEventDtos;
+    @OneToMany(cascade = CascadeType.REMOVE, mappedBy = "user")
+    private List<VoteDto> voteDtos;
 }

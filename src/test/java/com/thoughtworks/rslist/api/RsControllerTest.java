@@ -1,5 +1,8 @@
 package com.thoughtworks.rslist.api;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.thoughtworks.rslist.domain.Trade;
 import com.thoughtworks.rslist.dto.RsEventDto;
 import com.thoughtworks.rslist.dto.UserDto;
 import com.thoughtworks.rslist.dto.VoteDto;
@@ -36,7 +39,7 @@ class RsControllerTest {
   @Autowired RsEventRepository rsEventRepository;
   @Autowired VoteRepository voteRepository;
   private UserDto userDto;
-
+  private static int rank = 0;
   @BeforeEach
   void setUp() {
     voteRepository.deleteAll();
@@ -184,5 +187,20 @@ class RsControllerTest {
     List<VoteDto> voteDtos =  voteRepository.findAll();
     assertEquals(voteDtos.size(), 1);
     assertEquals(voteDtos.get(0).getNum(), 1);
+  }
+  @Test
+  public void should_buy_rsEvent() throws Exception {
+    UserDto save = userRepository.save(userDto);
+    RsEventDto rsEventDto =
+            RsEventDto.builder().keyword("buyRsEvent").eventName("testForByRsEvent").rank(rank).user(save).build();
+    rsEventDto = rsEventRepository.save(rsEventDto);
+    Trade trade = new Trade(100,1);
+    ObjectMapper objectMapper = new ObjectMapper();
+    String jsonValue = objectMapper.writeValueAsString(trade);
+    mockMvc.perform(
+                    post("/rs/buy/{id}", rsEventDto.getId())
+                            .content(jsonValue)
+                            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk());
   }
 }
