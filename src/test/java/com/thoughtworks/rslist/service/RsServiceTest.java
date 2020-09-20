@@ -24,7 +24,8 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
-
+import static org.mockito.Mockito.times;
+import static org.mockito.ArgumentMatchers.any;
 class RsServiceTest {
   RsService rsService;
 
@@ -107,42 +108,26 @@ class RsServiceTest {
                     .userName("xiaoli")
                     .id(2)
                     .build();
-    RsEventDto rsEventDto1 =
+    RsEventDto rsEventDto =
             RsEventDto.builder()
                     .eventName("event name")
-                    .id(1)
+                    .id(2)
                     .keyword("keyword")
                     .voteNum(2)
-                    .rank(1)
                     .user(userDto)
                     .build();
-    RsEventDto rsEventDto2 =
-            RsEventDto.builder()
-                    .eventName("event name2")
-                    .id(1)
-                    .keyword("keyword2")
-                    .voteNum(2)
-                    .rank(2)
-                    .user(userDto)
-                    .build();
-    TradeDto tradeDto = TradeDto.builder()
-            .rsEventDto(rsEventDto1)
-            .amount(100)
-            .rank(1)
-            .build();
+    when(rsEventRepository.findById(anyInt())).thenReturn(Optional.of(rsEventDto));
+    when(userRepository.findById(anyInt())).thenReturn(Optional.of(userDto));
     List<TradeDto> tradeDtos = new ArrayList<>();
-    List<RsEventDto> rsEventDtos = new ArrayList<RsEventDto>();
-    rsEventDtos.add(rsEventDto1);
-    rsEventDtos.add(rsEventDto2);
-    when(rsEventRepository.findAll()).thenReturn(rsEventDtos);
     when(tradeRepository.findAllByRank(anyInt())).thenReturn(tradeDtos);
-    // when
-    rsService.buy(new Trade(tradeDto.getAmount(),tradeDto.getRank()), 2);
-    // then
-    verify(tradeRepository).save(tradeDto);
-    verify(rsEventRepository).save(rsEventDto1);
+    Trade trade = new Trade(5, 1);
+    int rsEventId = 2;
+    rsService.buy(trade,rsEventId);
+    verify(rsEventRepository, times(1)).save(any());
+    verify(tradeRepository, times(1)).save(any());
 
   }
+
   @Test
   void shouldGetRsEventRankSuccess(){
     UserDto userDto =
