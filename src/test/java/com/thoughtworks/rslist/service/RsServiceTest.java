@@ -127,7 +127,32 @@ class RsServiceTest {
     verify(tradeRepository, times(1)).save(any());
 
   }
-
+  @Test
+  void shouldThrowExceptionWhenRankLowerThanCurrentRank() {
+    UserDto userDto =
+            UserDto.builder()
+                    .voteNum(5)
+                    .phone("18888888888")
+                    .gender("female")
+                    .email("a@b.com")
+                    .age(19)
+                    .userName("xiaoli")
+                    .id(2)
+                    .build();
+    RsEventDto rsEventDto =
+            RsEventDto.builder()
+                    .eventName("event name")
+                    .id(3)
+                    .keyword("keyword")
+                    .voteNum(3)
+                    .rank(1)
+                    .user(userDto)
+                    .build();
+    when(rsEventRepository.findById(anyInt())).thenReturn(Optional.of(rsEventDto));
+    Trade trade = new Trade(2, 1);
+    rsService.buy(trade,rsEventDto.getId());
+    assertThrows(Exception.class, () -> rsService.buy(trade, rsEventDto.getId()));
+  }
   @Test
   void shouldGetRsEventRankSuccess(){
     UserDto userDto =
@@ -162,7 +187,6 @@ class RsServiceTest {
     rsEventDtos.add(rsEventDto1);
     rsEventDtos.add(rsEventDto2);
     when(rsEventRepository.findAll()).thenReturn(rsEventDtos);
-
-
   }
+
 }
